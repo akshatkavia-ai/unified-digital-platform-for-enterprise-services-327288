@@ -47,9 +47,13 @@ def create_app() -> FastAPI:
         openapi_tags=openapi_tags,
     )
 
+    # CORS: allow browser-based frontend (Next.js dev server / preview) to call the API.
+    # If CORS_ALLOW_ORIGINS is not set, default to the preview frontend origin.
+    allow_origins = settings.cors_allow_origins or ["http://localhost:3000"]
+
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.cors_allow_origins,
+        allow_origins=allow_origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
