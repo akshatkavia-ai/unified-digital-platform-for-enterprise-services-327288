@@ -19,10 +19,10 @@ openapi_tags = [
     {"name": "auth", "description": "Authentication, JWT issuance, and MFA scaffolding."},
     {"name": "applications", "description": "Application lifecycle endpoints (submission, status, etc.)."},
     {"name": "workflow", "description": "Workflow/BPM and task management endpoints."},
-    {"name": "inspections", "description": "Inspection creation and tracking (stubs for now)."},
-    {"name": "documents", "description": "Document metadata/content management boundaries (metadata supported, storage stubbed)."},
-    {"name": "ticketing", "description": "Helpdesk/ticketing module boundaries (stubs for now)."},
-    {"name": "payments", "description": "Payment gateway boundaries (stubs for now)."},
+    {"name": "inspections", "description": "Inspection creation and tracking."},
+    {"name": "documents", "description": "Document metadata/content management boundaries (metadata persisted)."},
+    {"name": "ticketing", "description": "Helpdesk/ticketing module boundaries."},
+    {"name": "payments", "description": "Payment gateway boundaries (persistence implemented; gateway still stubbed)."},
 ]
 
 
@@ -30,26 +30,24 @@ def create_app() -> FastAPI:
     """Create and configure FastAPI application.
 
     Entry point contract:
-      - Initializes minimal DB schema at startup (iam_users, audit_log).
+      - Initializes DB schema at startup using database migration SQL.
       - Registers modular routers under their prefixes.
       - Exposes OpenAPI docs via /docs and schema at /openapi.json.
 
     Environment variables:
       - JWT_SECRET_KEY (required in production)
       - DATABASE_URL (optional; if absent, reads database/db_connection.txt)
-      - CORS_ALLOW_ORIGINS (optional, comma-separated; default '*')
+      - CORS_ALLOW_ORIGINS (optional, comma-separated; default 'http://localhost:3000')
     """
     settings = get_settings()
     app = FastAPI(
         title=settings.app_name,
-        description="Enterprise-grade Unified Digital Platform backend API (modular routers; JWT auth; Postgres audit logging).",
+        description="Enterprise-grade Unified Digital Platform backend API (modular routers; JWT auth; Postgres persistence).",
         version=settings.app_version,
         openapi_tags=openapi_tags,
     )
 
-    # CORS: allow browser-based frontend (Next.js dev server / preview) to call the API.
-    # If CORS_ALLOW_ORIGINS is not set, default to the preview frontend origin.
-    allow_origins = settings.cors_allow_origins or ["http://localhost:3000"]
+    allow_origins = settings.cors_allow_origins
 
     app.add_middleware(
         CORSMiddleware,
